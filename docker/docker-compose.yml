@@ -24,9 +24,10 @@ services:
   wordpress:
     depends_on:
       - db
-    build:
-      context: ../
-      dockerfile: ./docker/local/Dockerfile_fpm
+    image: wordpress:php7.4-fpm-alpine
+#    build:
+#      context: ../
+#      dockerfile: ./docker/local/Dockerfile_fpm
     container_name: ${PROJECT_NAME}_wordpress
     restart: always
     env_file: .env
@@ -39,7 +40,6 @@ services:
       - &data-app wp_volume:/var/www/html
   #      - ../wp-content:/var/www/html/wp-content
   #      - ../wp-config.php:/var/www/html/wp-config.php
-
 
   webserver:
     depends_on:

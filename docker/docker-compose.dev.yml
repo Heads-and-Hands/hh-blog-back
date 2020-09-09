@@ -28,10 +28,11 @@ services:
   wordpress:
     depends_on:
       - db
-    build:
-      context: ../
-      dockerfile: ./docker/dev/Dockerfile_fpm
-    image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
+    image: wordpress:php7.4-fpm-alpine
+#    build:
+#      context: ../
+#      dockerfile: ./docker/dev/Dockerfile_fpm
+#    image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
     container_name: ${PROJECT_NAME}_wordpress
     restart: always
     env_file: .env
