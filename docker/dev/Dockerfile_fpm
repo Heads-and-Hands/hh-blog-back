@@ -2,4 +2,5 @@ FROM wordpress:php7.4-fpm-alpine
 
 WORKDIR /var/www/html
 COPY ./ /var/www/html
+RUN mv .env.dev .env
 CMD php-fpm

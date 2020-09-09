@@ -30,7 +30,7 @@ services:
         - db
       build:
         context: ./dev
-        dockerfile: Dockerfile_nginx
+        dockerfile: Dockerfile_fpm
       image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
       container_name: ${PROJECT_NAME}_wordpress
       restart: always
