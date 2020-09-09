@@ -31,7 +31,7 @@ services:
       build:
         context: ./dev
         dockerfile: Dockerfile_nginx
-        image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
+      image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
       container_name: ${PROJECT_NAME}_wordpress
       restart: always
       env_file: .env
