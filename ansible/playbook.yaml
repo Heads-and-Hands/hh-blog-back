@@ -14,14 +14,22 @@
 
 - hosts: dev
   tasks:
+  - name: Set vars
+    set_fact:
+      appDir: '/var/www/hhblog'
   - name: Check compose file exists.
     stat:
-      path: /var/www/bettery/docker-compose.dev.yml
+      path: "{{ appDir }}/docker-compose.dev.yml"
     register: p
+  - name: save old compose file
+    shell: mv docker-compose.dev.yml docker-compose.dev-prev.yml
+    when: p.stat.exists
+    args:
+      chdir: "{{ appDir }}"
   - name: copy new docker-compose file
     copy:
       src: ../docker/docker-compose.dev.yml
-      dest: /var/www/hhblog/docker-compose.dev.yml
+      dest: "{{ appDir }}/docker-compose.dev.yml"
   - name: docker-compose pull and down and up
     shell: |
       export VERSION={{lookup('env','VERSION')}}
@@ -29,7 +37,7 @@
       docker login -u test -p {{lookup('env','registrypassword')}} registry.handh.ru
       mkdir -p common dev local prod release
       docker-compose -f docker-compose.dev.yml pull
-      docker-compose -p hhblog -f docker-compose.dev.yml down -v
+      [ -f docker-compose.dev-prev.yml ] && docker-compose -p hhblog -f docker-compose.dev-prev.yml down -v
       docker-compose -p hhblog -f docker-compose.dev.yml up -d
     args:
-      chdir: /var/www/hhblog
+      chdir: "{{ appDir }}"
