@@ -9,61 +9,64 @@ volumes:
   wp_volume:
 
 services:
-    db:
-      image: mysql:8.0
-      container_name: ${PROJECT_NAME}_db
-      restart: always
-      env_file: .env
-      environment:
-        MYSQL_DATABASE: &wp-db-name wordpress
-      volumes:
-        - ./dbdata-dev:/var/lib/mysql
-      ports:
-        - 14406:3306
-      networks:
-        - default
-      labels:
-        - "traefik.enable=false"
+  db:
+    image: mysql:8.0
+    container_name: ${PROJECT_NAME}_db
+    restart: always
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: &wp-db-name wordpress
+    volumes:
+      - ./dbdata-dev:/var/lib/mysql
+    ports:
+      - 14406:3306
+    networks:
+      - default
+    labels:
+      - "traefik.enable=false"
 
-    wordpress:
-      depends_on:
-        - db
-      image: wordpress:php7.4-fpm-alpine
-      container_name: ${PROJECT_NAME}_wordpress
-      restart: always
-      env_file: .env
-      environment:
-        WORDPRESS_DB_HOST: db:3306
-        WORDPRESS_DB_USER: ${MYSQL_USER}
-        WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
-        WORDPRESS_DB_NAME: *wp-db-name
-      volumes:
-        - &wp_src wp_volume:/var/www/html
-      networks:
-        - default
-      labels:
-        - "traefik.enable=false"
+  wordpress:
+    depends_on:
+      - db
+    build:
+      context: ../
+      dockerfile: ./docker/dev/Dockerfile_fpm
+    image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
+    container_name: ${PROJECT_NAME}_wordpress
+    restart: always
+    env_file: .env
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_DB_NAME: *wp-db-name
+    volumes:
+      - &wp_src wp_volume:/var/www/html
+    networks:
+      - default
+    labels:
+      - "traefik.enable=false"
 
-    webserver:
-      build:
-        context: ./dev
-        dockerfile: Dockerfile_nginx
-      image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/nginx:${VERSION}"
-      depends_on:
-        - wordpress
-      container_name: ${PROJECT_NAME}_webserver
-      restart: always
-      ports:
-        - 28631:80
-      volumes:
-        - *wp_src
-        - ./logs-dev/nginx:/var/log/nginx:rw
-      networks:
-        - default
-        - proxy
-      labels:
-        - "traefik.docker.network=proxy"
-        - "traefik.http.services.${PROJECT_NAME}-back.loadbalancer.server.port=80"
-        - "traefik.http.routers.${PROJECT_NAME}-back.rule=Host(`handh-blog.hnh-dev.ru`)"
-        - "traefik.http.routers.${PROJECT_NAME}-back.entrypoints=websecure"
-        - "traefik.http.routers.${PROJECT_NAME}-back.tls.certresolver=myhttpchallenge"
+  webserver:
+    build:
+      context: ./dev
+      dockerfile: Dockerfile_nginx
+    image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/nginx:${VERSION}"
+    depends_on:
+      - wordpress
+    container_name: ${PROJECT_NAME}_webserver
+    restart: always
+    ports:
+      - 28631:80
+    volumes:
+      - *wp_src
+      - ./logs-dev/nginx:/var/log/nginx:rw
+    networks:
+      - default
+      - proxy
+    labels:
+      - "traefik.docker.network=proxy"
+      - "traefik.http.services.${PROJECT_NAME}-back.loadbalancer.server.port=80"
+      - "traefik.http.routers.${PROJECT_NAME}-back.rule=Host(`handh-blog.hnh-dev.ru`)"
+      - "traefik.http.routers.${PROJECT_NAME}-back.entrypoints=websecure"
+      - "traefik.http.routers.${PROJECT_NAME}-back.tls.certresolver=myhttpchallenge"
