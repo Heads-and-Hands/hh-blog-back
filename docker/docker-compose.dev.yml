@@ -28,7 +28,10 @@ services:
     wordpress:
       depends_on:
         - db
-      image: wordpress:php7.4-fpm-alpine
+      build:
+        context: ./dev
+        dockerfile: Dockerfile_nginx
+        image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
       container_name: ${PROJECT_NAME}_wordpress
       restart: always
       env_file: .env
@@ -44,14 +47,14 @@ services:
       labels:
         - "traefik.enable=false"
 
-    webserver:
+    nginx:
       build:
         context: ./dev
         dockerfile: Dockerfile_nginx
       image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/nginx:${VERSION}"
       depends_on:
         - wordpress
-      container_name: ${PROJECT_NAME}_webserver
+      container_name: ${PROJECT_NAME}_nginx
       restart: always
       ports:
         - 28631:80
