@@ -29,8 +29,8 @@ services:
       depends_on:
         - db
       build:
-        context: ./dev
-        dockerfile: Dockerfile_fpm
+        context: ../
+        dockerfile: ./docker/dev/Dockerfile_fpm
       image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
       container_name: ${PROJECT_NAME}_wordpress
       restart: always
