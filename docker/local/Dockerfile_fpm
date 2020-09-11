@@ -8,8 +8,7 @@ RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repo
 RUN set -ex && apk add --no-cache libpng-dev libzip-dev icu-dev mysql-client \
     supervisor libxml2-dev oniguruma-dev $PHPIZE_DEPS \
     && docker-php-ext-install pdo mysqli bcmath mbstring gd sockets pcntl \
-    zip iconv intl xml json dom zip opcache \
-    && rm -rf /var/cache/apk/*
+    zip iconv intl xml json dom zip opcache
 
 # Install wp-cli
 RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \

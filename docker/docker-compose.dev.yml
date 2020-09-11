@@ -61,6 +61,7 @@ services:
       - 28631:80
     volumes:
       - *wp_src
+      - ./wp-content:/app/wp-content
       - ./logs-dev/nginx:/var/log/nginx:rw
     networks:
       - default
