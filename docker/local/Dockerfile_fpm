@@ -1,12 +1,28 @@
-FROM wordpress:php7.4-fpm-alpine
+FROM php:7.4.2-fpm-alpine as base
 
 RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && \
     echo /etc/apk/respositories && \
     apk update && \
-    apk add rsync
+    apk add --no-cache bash wget
 
-WORKDIR /tmp/project
-COPY ./ /tmp/project
+RUN set -ex && apk add --no-cache libpng-dev libzip-dev icu-dev mysql-client \
+    supervisor libxml2-dev oniguruma-dev $PHPIZE_DEPS \
+    && docker-php-ext-install pdo mysqli bcmath mbstring gd sockets pcntl \
+    zip iconv intl xml json dom zip opcache \
+    && rm -rf /var/cache/apk/*
 
-RUN chown -R www-data:www-data /var/www/html/
-CMD rsync -avr /tmp/project/ /var/www/html/; php-fpm
+# Install wp-cli
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && chmod +x wp-cli.phar \
+    && mv wp-cli.phar /usr/local/bin/wp
+
+WORKDIR /app
+
+RUN wp core download --locale=ru_RU --skip-themes --skip-plugins --allow-root && \
+chown -R www-data /app && \
+find . -type d -exec chmod 775 {} \; && \
+find . -type f -exec chmod 666 {} \;
+
+FROM base AS app
+
+CMD php-fpm

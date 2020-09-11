@@ -35,7 +35,8 @@
       export VERSION={{lookup('env','VERSION')}}
       export PROJECT_NAME={{lookup('env','PROJECT_NAME')}}
       docker login -u test -p {{lookup('env','registrypassword')}} registry.handh.ru
-      mkdir -p common dev local prod release
+      mkdir -p common dev local prod release wp-content
+      chmod -R 777 wp-content
       docker-compose -f docker-compose.dev.yml pull
       [ -f docker-compose.dev-prev.yml ] && docker-compose -p hhblog -f docker-compose.dev-prev.yml down -v
       docker-compose -p hhblog -f docker-compose.dev.yml up -d

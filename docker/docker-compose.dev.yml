@@ -28,11 +28,10 @@ services:
   wordpress:
     depends_on:
       - db
-    image: wordpress:php7.4-fpm-alpine
-#    build:
-#      context: ../
-#      dockerfile: ./docker/dev/Dockerfile_fpm
-#    image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
+    build:
+      context: ../
+      dockerfile: ./docker/dev/Dockerfile_fpm
+    image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
     container_name: ${PROJECT_NAME}_wordpress
     restart: always
     env_file: .env
@@ -42,7 +41,8 @@ services:
       WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
       WORDPRESS_DB_NAME: *wp-db-name
     volumes:
-      - &wp_src wp_volume:/var/www/html
+      - &wp_src wp_volume:/app
+      - ./wp-content:/app/wp-content
     networks:
       - default
     labels:
