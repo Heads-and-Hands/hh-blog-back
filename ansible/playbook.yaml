@@ -40,5 +40,6 @@
       docker-compose -f docker-compose.dev.yml pull
       [ -f docker-compose.dev-prev.yml ] && docker-compose -p hhblog -f docker-compose.dev-prev.yml down -v
       docker-compose -p hhblog -f docker-compose.dev.yml up -d
+      docker exec -it -u www-data:www-data hh_blog_wordpress bash bin/set_vars.sh
     args:
       chdir: "{{ appDir }}"

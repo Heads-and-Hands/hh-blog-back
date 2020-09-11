@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cp wp-config.php.example /app/wp-config.php
+cp /app/bin/wp-config.php.example /app/wp-config.php
 
 wp config set DB_USER "$MYSQL_USER" --path=/app
 wp config set DB_PASSWORD "$MYSQL_PASSWORD" --path=/app
