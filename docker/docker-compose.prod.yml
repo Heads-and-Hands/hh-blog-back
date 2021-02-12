@@ -2,11 +2,10 @@ version: '3.4'
 
 networks:
   default:
-  proxy:
-    external: true
 
 volumes:
   wp_volume:
+    name: code-${VERSION}
 
 services:
   db:
@@ -17,21 +16,19 @@ services:
     environment:
       MYSQL_DATABASE: &wp-db-name wordpress
     volumes:
-      - ./dbdata-dev:/var/lib/mysql
+      - ./dbdata-prod:/var/lib/mysql
     ports:
       - 14406:3306
     networks:
       - default
-    labels:
-      - "traefik.enable=false"
 
   wordpress:
     depends_on:
       - db
     build:
       context: ../
-      dockerfile: ./docker/dev/Dockerfile_fpm
-    image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/wordpress:${VERSION}"
+      dockerfile: ./docker/prod/Dockerfile_fpm
+    image: "registry.handh.ru/${PROJECT_NAME}/backend-prod/wordpress:${VERSION}"
     container_name: ${PROJECT_NAME}_wordpress
     restart: always
     env_file: .env
@@ -45,14 +42,12 @@ services:
       - ./wp-content:/app/wp-content
     networks:
       - default
-    labels:
-      - "traefik.enable=false"
 
   webserver:
     build:
-      context: ./dev
+      context: ./prod
       dockerfile: Dockerfile_nginx
-    image: "registry.handh.ru/${PROJECT_NAME}/backend-dev/nginx:${VERSION}"
+    image: "registry.handh.ru/${PROJECT_NAME}/backend-prod/nginx:${VERSION}"
     depends_on:
       - wordpress
     container_name: ${PROJECT_NAME}_webserver
@@ -62,13 +57,6 @@ services:
     volumes:
       - *wp_src
       - ./wp-content:/app/wp-content
-      - ./logs-dev/nginx:/var/log/nginx:rw
+      - ./logs/nginx:/var/log/nginx:rw
     networks:
       - default
-      - proxy
-    labels:
-      - "traefik.docker.network=proxy"
-      - "traefik.http.services.${PROJECT_NAME}-back.loadbalancer.server.port=80"
-      - "traefik.http.routers.${PROJECT_NAME}-back.rule=Host(`handh-blog.hnh-dev.ru`)"
-      - "traefik.http.routers.${PROJECT_NAME}-back.entrypoints=websecure"
-      - "traefik.http.routers.${PROJECT_NAME}-back.tls.certresolver=myhttpchallenge"

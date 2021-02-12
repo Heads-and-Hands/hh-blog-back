@@ -1,0 +1,5 @@
+[dev]
+hnh-dev.ru     ansible_user=root
+
+[prod]
+52.27.19.91   ansible_user=ubuntu

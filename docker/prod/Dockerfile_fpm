@@ -23,8 +23,8 @@ RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli
 WORKDIR /app
 COPY ./ /app
 
-COPY docker/dev/config/fpm/www.conf /usr/local/etc/php-fpm.d/www.conf
-COPY docker/dev/config/fpm/php.ini /usr/local/etc/php/php.ini
+COPY docker/prod/config/fpm/www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY docker/prod/config/fpm/php.ini /usr/local/etc/php/php.ini
 
 RUN wp core download --locale=ru_RU --skip-themes --skip-plugins --allow-root && \
 chown -R www-data /app && \
