@@ -1,0 +1,36 @@
+FROM php:7.4.2-fpm-alpine as base
+
+RUN echo @testing http://nl.alpinelinux.org/alpine/edge/testing >> /etc/apk/repositories && \
+    echo /etc/apk/respositories && \
+    apk update && \
+    apk add --no-cache bash wget
+
+RUN set -ex && apk add --no-cache libpng-dev libzip-dev icu-dev mysql-client \
+    supervisor libxml2-dev oniguruma-dev $PHPIZE_DEPS \
+    && docker-php-ext-install pdo mysqli bcmath mbstring sockets pcntl \
+    zip iconv intl xml json dom zip opcache
+
+ADD https://raw.githubusercontent.com/mlocati/docker-php-extension-installer/master/install-php-extensions /usr/local/bin/
+
+RUN chmod uga+x /usr/local/bin/install-php-extensions && sync && \
+    install-php-extensions imagick
+
+# Install wp-cli
+RUN curl -O https://raw.githubusercontent.com/wp-cli/builds/gh-pages/phar/wp-cli.phar \
+    && chmod +x wp-cli.phar \
+    && mv wp-cli.phar /usr/local/bin/wp
+
+WORKDIR /app
+COPY ./ /app
+
+COPY docker/prod/config/fpm/www.conf /usr/local/etc/php-fpm.d/www.conf
+COPY docker/prod/config/fpm/php.ini /usr/local/etc/php/php.ini
+
+RUN wp core download --locale=ru_RU --skip-themes --skip-plugins --allow-root && \
+chown -R www-data /app && \
+find . -type d -exec chmod 775 {} \; && \
+find . -type f -exec chmod 664 {} \;
+
+FROM base AS app
+
+CMD php-fpm

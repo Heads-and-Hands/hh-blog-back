@@ -1,28 +1,36 @@
 - hosts: localhost
   tasks:
+    - name: Set vars
+      set_fact:
+        dockerFile: 'docker-compose.prod.yml'
+        appDir: '/home/ubuntu/sites/wp-admin'
+        stackName: 'WP_ADMIN'
     - name: docker build
-      raw: docker-compose -f ../docker/docker-compose.prod.yml build
+      raw: docker-compose -f ../docker/{{ dockerFile }} build
 
     - name: docker login
       raw: docker login -u test -p {{lookup('env','registrypassword')}} registry.handh.ru
 
     - name: docker push
-      raw: docker-compose -f ../docker/docker-compose.prod.yml push
+      raw: docker-compose -f ../docker/{{ dockerFile }} push
 
 - hosts: prod
   tasks:
     - name: copy new docker-compose file
       copy:
-        src: ../docker/docker-compose.prod.yml
-        dest: /var/www/hhblog/docker-compose.prod.yml
-    - name: docker-compose deploy
+        src: ../docker/{{ hostvars['localhost']['dockerFile'] }}
+        dest: "{{ hostvars['localhost']['appDir'] }}/{{ hostvars['localhost']['dockerFile'] }}"
+    - name: Deploy
       shell: |
         export VERSION={{lookup('env','VERSION')}}
         export COMPOSE_INTERACTIVE_NO_CLI=1
         export PROJECT_NAME={{lookup('env','PROJECT_NAME')}}
+        mkdir -p wp-content logs
+        chmod -R 777 wp-content
         docker login -u test -p {{lookup('env','registrypassword')}} registry.handh.ru
         docker volume create --name code-$VERSION
-        env $(cat .env | grep ^[A-Z] | xargs) docker stack deploy --prune --with-registry-auth -c docker-compose.prod.yml HHBLOG
-        sleep 30
+        export $(cat .env | xargs)
+        docker stack deploy --with-registry-auth -c {{ hostvars['localhost']['dockerFile'] }} {{ hostvars['localhost']['stackName'] }}
+        docker exec -it -u www-data:www-data hh_blog_wordpress bash bin/set_vars.sh
       args:
-        chdir: /var/www/hhblog
+        chdir: "{{ hostvars['localhost']['appDir'] }}"

@@ -1,0 +1,62 @@
+version: '3.4'
+
+networks:
+  default:
+
+volumes:
+  wp_volume:
+    name: code-${VERSION}
+
+services:
+  db:
+    image: mysql:8.0
+    container_name: ${PROJECT_NAME}_db
+    restart: always
+    env_file: .env
+    environment:
+      MYSQL_DATABASE: &wp-db-name wordpress
+    volumes:
+      - ./dbdata-prod:/var/lib/mysql
+    ports:
+      - 14406:3306
+    networks:
+      - default
+
+  wordpress:
+    depends_on:
+      - db
+    build:
+      context: ../
+      dockerfile: ./docker/prod/Dockerfile_fpm
+    image: "registry.handh.ru/${PROJECT_NAME}/backend-prod/wordpress:${VERSION}"
+    container_name: ${PROJECT_NAME}_wordpress
+    restart: always
+    env_file: .env
+    environment:
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_DB_NAME: *wp-db-name
+    volumes:
+      - &wp_src wp_volume:/app
+      - ./wp-content:/app/wp-content
+    networks:
+      - default
+
+  webserver:
+    build:
+      context: ./prod
+      dockerfile: Dockerfile_nginx
+    image: "registry.handh.ru/${PROJECT_NAME}/backend-prod/nginx:${VERSION}"
+    depends_on:
+      - wordpress
+    container_name: ${PROJECT_NAME}_webserver
+    restart: always
+    ports:
+      - 28631:80
+    volumes:
+      - *wp_src
+      - ./wp-content:/app/wp-content
+      - ./logs/nginx:/var/log/nginx:rw
+    networks:
+      - default
