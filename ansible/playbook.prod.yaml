@@ -3,7 +3,7 @@
     - name: Set vars
       set_fact:
         dockerFile: 'docker-compose.prod.yml'
-        appDir: '/home/ubuntu/sites/wp-admin'
+        appDir: '/home/ubuntu/www/sites/wp-admin'
         stackName: 'WP_ADMIN'
     - name: docker build
       raw: docker-compose -f ../docker/{{ dockerFile }} build
