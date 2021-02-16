@@ -27,7 +27,6 @@
         export PROJECT_NAME={{lookup('env','PROJECT_NAME')}}
         mkdir -p wp-content logs
         docker login -u test -p {{lookup('env','registrypassword')}} registry.handh.ru
-        docker volume create --name code-$VERSION
         export $(cat .env | xargs)
         docker stack deploy --with-registry-auth -c {{ hostvars['localhost']['dockerFile'] }} {{ hostvars['localhost']['stackName'] }}
       args:
