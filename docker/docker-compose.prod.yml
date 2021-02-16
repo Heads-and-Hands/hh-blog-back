@@ -1,11 +1,10 @@
-version: '3.7'
+version: '3.4'
 
 networks:
   default:
 
 volumes:
   wp_volume:
-    name: code-${VERSION}
 
 services:
   db:
@@ -20,10 +19,7 @@ services:
       - 14406:3306
     networks:
       - default
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
+    restart: always
 
   wordpress:
     depends_on:
@@ -44,10 +40,7 @@ services:
       - ./wp-content:/app/wp-content
     networks:
       - default
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
+    restart: always
 
   webserver:
     build:
@@ -65,7 +58,4 @@ services:
       - ./logs/nginx:/var/log/nginx:rw
     networks:
       - default
-    deploy:
-      replicas: 1
-      restart_policy:
-        condition: on-failure
+    restart: always

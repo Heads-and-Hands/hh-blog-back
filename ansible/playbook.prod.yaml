@@ -1,33 +1,40 @@
 - hosts: localhost
   tasks:
-    - name: Set vars
-      set_fact:
-        dockerFile: 'docker-compose.prod.yml'
-        appDir: '/home/ubuntu/www/sites/wp-admin'
-        stackName: 'WP_ADMIN'
-    - name: docker build
-      raw: docker-compose -f ../docker/{{ dockerFile }} build
+  - name: docker build
+    raw: docker-compose -f ../docker/docker-compose.prod.yml build
 
-    - name: docker login
-      raw: docker login -u test -p {{lookup('env','registrypassword')}} registry.handh.ru
+  - name: docker login
+    raw: docker login -u test -p {{lookup('env','registrypassword')}} registry.handh.ru
 
-    - name: docker push
-      raw: docker-compose -f ../docker/{{ dockerFile }} push
+  - name: docker push
+    raw: docker-compose -f ../docker/docker-compose.prod.yml push
 
 - hosts: prod
   tasks:
-    - name: copy new docker-compose file
-      copy:
-        src: ../docker/{{ hostvars['localhost']['dockerFile'] }}
-        dest: "{{ hostvars['localhost']['appDir'] }}/{{ hostvars['localhost']['dockerFile'] }}"
-    - name: Deploy
-      shell: |
-        export VERSION={{lookup('env','VERSION')}}
-        export COMPOSE_INTERACTIVE_NO_CLI=1
-        export PROJECT_NAME={{lookup('env','PROJECT_NAME')}}
-        mkdir -p wp-content logs
-        docker login -u test -p {{lookup('env','registrypassword')}} registry.handh.ru
-        export $(cat .env | xargs)
-        docker stack deploy --with-registry-auth -c {{ hostvars['localhost']['dockerFile'] }} {{ hostvars['localhost']['stackName'] }}
-      args:
-        chdir: "{{ hostvars['localhost']['appDir'] }}"
+  - name: Set vars
+    set_fact:
+      appDir: '/home/ubuntu/www/sites/wp-admin'
+  - name: Check compose file exists.
+    stat:
+      path: "{{ appDir }}/docker-compose.prod.yml"
+    register: p
+  - name: save old compose file
+    shell: mv docker-compose.prod.yml docker-compose.prod-prev.yml
+    when: p.stat.exists
+    args:
+      chdir: "{{ appDir }}"
+  - name: copy new docker-compose file
+    copy:
+      src: ../docker/docker-compose.prod.yml
+      dest: "{{ appDir }}/docker-compose.prod.yml"
+  - name: docker-compose pull and down and up
+    shell: |
+      export VERSION={{lookup('env','VERSION')}}
+      export PROJECT_NAME={{lookup('env','PROJECT_NAME')}}
+      docker login -u test -p {{lookup('env','registrypassword')}} registry.handh.ru
+      mkdir -p logs wp-content
+      docker-compose -f docker-compose.prod.yml pull
+      [ -f docker-compose.prod-prev.yml ] && docker-compose -p hhblog -f docker-compose.prod-prev.yml down -v
+      docker-compose -p hhblog -f docker-compose.prod.yml up -d
+    args:
+      chdir: "{{ appDir }}"
