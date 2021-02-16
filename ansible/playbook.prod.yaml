@@ -26,7 +26,6 @@
         export COMPOSE_INTERACTIVE_NO_CLI=1
         export PROJECT_NAME={{lookup('env','PROJECT_NAME')}}
         mkdir -p wp-content logs
-        chmod -R 777 wp-content
         docker login -u test -p {{lookup('env','registrypassword')}} registry.handh.ru
         docker volume create --name code-$VERSION
         export $(cat .env | xargs)
