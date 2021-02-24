@@ -44,9 +44,11 @@ services:
       - ./local/config/fpm/php.ini:/usr/local/etc/php/php.ini
 
   webserver:
+    build:
+      context: ./local
+      dockerfile: Dockerfile_nginx
     depends_on:
       - wordpress
-    image: nginx:1.16.0-alpine
     container_name: ${PROJECT_NAME}_webserver
     restart: always
     ports:
