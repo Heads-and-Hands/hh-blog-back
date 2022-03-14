@@ -3,3 +3,4 @@ hnh-dev.ru     ansible_user=root
 
 [prod]
 13.51.26.31   ansible_user=ubuntu
+94.228.117.3   ansible_user=root
